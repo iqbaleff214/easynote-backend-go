@@ -4,6 +4,7 @@ import "database/sql"
 
 type Repository interface {
 	Save(user User) (User, error)
+	FindByEmail(email string) (User, error)
 }
 
 type repository struct {
@@ -30,6 +31,19 @@ func (r *repository) Save(user User) (User, error) {
 
 	user.ID = int(id)
 
+
+	return user, nil
+}
+
+func (r *repository) FindByEmail(email string) (User, error) {
+	var user User
+
+	query := "SELECT id, name, email, password, created_at, updated_at FROM users WHERE email = ?"
+	
+	err := r.db.QueryRow(query, email).Scan(&user.ID, &user.Name, &user.Email, &user.Password, &user.CreatedAt, &user.UpdatedAt)
+	if err != nil {
+		return user, err
+	}
 
 	return user, nil
 }

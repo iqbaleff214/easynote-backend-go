@@ -46,6 +46,8 @@ func main() {
 
 	// User Domain
 	api.Post("/register", userHandler.RegisterUser)
+	api.Post("/login", userHandler.Login)
+
 	api.Use(jwtware.New(jwtware.Config{SigningKey: jwtware.SigningKey{Key: []byte(appConfig.jwtSecret)}}))
 
 	// Note Domain
