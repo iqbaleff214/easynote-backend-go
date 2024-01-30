@@ -73,3 +73,35 @@ func (h *userHandler) Login(c *fiber.Ctx) error {
 
 	return c.Status(fiber.StatusOK).JSON(response)
 }
+
+func (h *userHandler) CurrentUser(c *fiber.Ctx) error {
+	currentUser := c.Locals("currentUser").(user.User)
+
+	return c.Status(fiber.StatusOK).JSON(
+		helper.APIResponse("Successfully fetched current user's profile", "success", fiber.StatusOK, user.FormatUser(currentUser, "")),
+	)
+}
+
+func (h *userHandler) UpdateUser(c *fiber.Ctx) error {
+
+	var input user.UpdateUserInput
+
+	if err := c.BodyParser(&input); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(
+			helper.APIResponse("There's something wrong with request body", "error", fiber.StatusBadRequest, nil),
+		)
+	}
+
+	currentUser := c.Locals("currentUser").(user.User)
+
+	updatedUser, err := h.userService.UpdateUser(input, currentUser)
+	if err != nil {
+		return c.Status(fiber.StatusUnprocessableEntity).JSON(
+			helper.APIResponse("Cannot update current user's profile", "error", fiber.StatusUnprocessableEntity, nil),
+		)
+	}
+
+	return c.Status(fiber.StatusOK).JSON(
+		helper.APIResponse("Successfully updated current user's profile", "success", fiber.StatusOK, user.FormatUser(updatedUser, "")),
+	)
+}

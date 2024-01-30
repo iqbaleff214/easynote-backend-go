@@ -38,14 +38,14 @@ func AuthMiddleware(jwtSecret string, userService user.Service) func(c *fiber.Ct
 			}
 
 			// TODO: is it necessary?
-			// userID := int(claims["user_id"].(float64))
-			// user, err := userService.GetUserByID(userID)
-			// if err != nil {
-			// 	return c.Status(fiber.StatusUnauthorized).JSON(
-			// 		helper.APIResponse("User not found", "error", fiber.StatusUnauthorized, nil),
-			// 	)
-			// }
-			// c.Locals("currentUser", user)
+			userID := int(claims["user_id"].(float64))
+			user, err := userService.GetUserByID(userID)
+			if err != nil {
+				return c.Status(fiber.StatusUnauthorized).JSON(
+					helper.APIResponse("User not found", "error", fiber.StatusUnauthorized, nil),
+				)
+			}
+			c.Locals("currentUser", user)
 
 			return c.Next()
 		},

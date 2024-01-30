@@ -10,6 +10,7 @@ type Service interface {
 	RegisterUser(input RegisterUserInput) (User, error)
 	Login(input LoginInput) (User, error)
 	GetUserByID(id int) (User, error)
+	UpdateUser(input UpdateUserInput, currentUser User) (User, error)
 }
 
 type service struct {
@@ -73,4 +74,25 @@ func (s *service) GetUserByID(id int) (User, error) {
 	}
 
 	return user, nil
+}
+
+func (s *service) UpdateUser(input UpdateUserInput, currentUser User) (User, error) {
+
+	currentUser.Name = input.Name
+	currentUser.Email = input.Email
+
+	if input.Password != "" {
+		passwordHash, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.MinCost)
+		if err != nil {
+			return currentUser, err
+		}
+		currentUser.Password = string(passwordHash)
+	}
+
+	newUser, err := s.repository.Update(currentUser)
+	if err != nil {
+		return currentUser, err
+	}
+
+	return newUser, nil
 }

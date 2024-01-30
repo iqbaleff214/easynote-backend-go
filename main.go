@@ -51,6 +51,9 @@ func main() {
 
 	api.Use(handler.AuthMiddleware(appConfig.jwtSecret, userService))
 
+	api.Get("/profile", userHandler.CurrentUser)
+	api.Put("/profile", userHandler.UpdateUser)
+
 	// Note Domain
 
 	// Folder Domain
