@@ -2,7 +2,7 @@ package helper
 
 type Response struct {
 	Meta Meta `json:"meta"`
-	Data any  `json:"data"`
+	Data any  `json:"data,omitempty"`
 }
 
 type Meta struct {
