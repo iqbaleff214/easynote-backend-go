@@ -2,16 +2,18 @@ package handler
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"github.com/iqbaleff214/easynote-backend-go/auth"
 	"github.com/iqbaleff214/easynote-backend-go/helper"
 	"github.com/iqbaleff214/easynote-backend-go/user"
 )
 
 type userHandler struct {
 	userService user.Service
+	authService auth.Service
 }
 
-func NewUserHandler(userService user.Service) *userHandler {
-	return &userHandler{userService}
+func NewUserHandler(userService user.Service, authService auth.Service) *userHandler {
+	return &userHandler{userService, authService}
 }
 
 func (h *userHandler) RegisterUser(c *fiber.Ctx) error {
@@ -31,7 +33,13 @@ func (h *userHandler) RegisterUser(c *fiber.Ctx) error {
 		)
 	}
 
-	token := "dummy-token"
+	token, err := h.authService.GenerateToken(newUser.ID)
+	if err != nil {
+		return c.Status(fiber.StatusUnprocessableEntity).JSON(
+			helper.APIResponse("Cannot generate token for new user", "error", fiber.StatusUnprocessableEntity, nil),
+		)
+	}
+
 	response := helper.APIResponse("New user has been registered", "success", fiber.StatusCreated, user.FormatUser(newUser, token))
 
 	return c.Status(fiber.StatusOK).JSON(response)
@@ -54,7 +62,13 @@ func (h *userHandler) Login(c *fiber.Ctx) error {
 		)
 	}
 
-	token := "dummy-token"
+	token, err := h.authService.GenerateToken(loggedUser.ID)
+	if err != nil {
+		return c.Status(fiber.StatusUnprocessableEntity).JSON(
+			helper.APIResponse("Cannot generate token for current user", "error", fiber.StatusUnprocessableEntity, nil),
+		)
+	}
+
 	response := helper.APIResponse("Successfully logged in", "success", fiber.StatusOK, user.FormatUser(loggedUser, token))
 
 	return c.Status(fiber.StatusOK).JSON(response)

@@ -3,10 +3,10 @@ package main
 import (
 	"log"
 
-	jwtware "github.com/gofiber/contrib/jwt"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
+	"github.com/iqbaleff214/easynote-backend-go/auth"
 	"github.com/iqbaleff214/easynote-backend-go/handler"
 	"github.com/iqbaleff214/easynote-backend-go/user"
 )
@@ -25,10 +25,11 @@ func main() {
 	userRepository := user.NewRepository(db)
 
 	// service init
+	authService := auth.NewService(appConfig.jwtSecret)
 	userService := user.NewService(userRepository)
 
 	// handler init
-	userHandler := handler.NewUserHandler(userService)
+	userHandler := handler.NewUserHandler(userService, authService)
 
 	app := fiber.New()
 	app.Use(cors.New())
@@ -48,7 +49,7 @@ func main() {
 	api.Post("/register", userHandler.RegisterUser)
 	api.Post("/login", userHandler.Login)
 
-	api.Use(jwtware.New(jwtware.Config{SigningKey: jwtware.SigningKey{Key: []byte(appConfig.jwtSecret)}}))
+	api.Use(handler.AuthMiddleware(appConfig.jwtSecret, userService))
 
 	// Note Domain
 
