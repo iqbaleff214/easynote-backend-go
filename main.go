@@ -9,6 +9,7 @@ import (
 	"github.com/iqbaleff214/easynote-backend-go/auth"
 	"github.com/iqbaleff214/easynote-backend-go/folder"
 	"github.com/iqbaleff214/easynote-backend-go/handler"
+	"github.com/iqbaleff214/easynote-backend-go/note"
 	"github.com/iqbaleff214/easynote-backend-go/user"
 )
 
@@ -25,15 +26,18 @@ func main() {
 	// repository init
 	userRepository := user.NewRepository(db)
 	folderRepository := folder.NewRepository(db)
+	noteRepository := note.NewRepository(db)
 
 	// service init
 	authService := auth.NewService(appConfig.jwtSecret)
 	userService := user.NewService(userRepository)
 	folderService := folder.NewService(folderRepository)
+	noteService := note.NewService(noteRepository)
 
 	// handler init
 	userHandler := handler.NewUserHandler(userService, authService)
 	folderHandler := handler.NewFolderHandler(folderService)
+	noteHandler := handler.NewNoteHandler(noteService)
 
 	app := fiber.New()
 	app.Use(cors.New())
@@ -48,6 +52,7 @@ func main() {
 			"Date":         "30/01/2024",
 		})
 	})
+	api.Get("/search", noteHandler.FindPublicNotes)
 
 	// User Domain
 	api.Post("/register", userHandler.RegisterUser)
@@ -59,6 +64,11 @@ func main() {
 	api.Put("/profile", userHandler.UpdateUser)
 
 	// Note Domain
+	api.Get("/notes", noteHandler.FindNotes)
+	api.Post("/notes", noteHandler.CreateNote)
+	api.Get("/notes/:id", noteHandler.FindNote)
+	api.Put("/notes/:id", noteHandler.UpdateNote)
+	api.Delete("/notes/:id", noteHandler.DeleteNote)
 
 	// Folder Domain
 	api.Get("/folders", folderHandler.FindFolders)
